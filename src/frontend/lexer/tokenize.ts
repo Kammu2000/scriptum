@@ -92,6 +92,6 @@ export const tokenize = (sourceCode: string): Token[] => {
   return tokens;
 }
 
-const code = "let temp = 5 * (3 + 4)";
-console.log(tokenize(code));
+// const code = "let temp = 5 * (3 + 4)";
+// console.log(tokenize(code));
 
