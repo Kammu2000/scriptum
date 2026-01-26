@@ -59,7 +59,7 @@ export default class Parser {
       const right = this.parseMultiplicativeExpression();
 
       left = {
-        kind: ExpressionKind.BinayExpression,
+        kind: ExpressionKind.BinaryExpression,
         left,
         right, 
         op,
@@ -78,7 +78,7 @@ export default class Parser {
       const op = this.eat().value;
       const right = this.parsePrimaryExpression();
       left = {
-        kind: ExpressionKind.BinayExpression,
+        kind: ExpressionKind.BinaryExpression,
         left,
         right, 
         op,

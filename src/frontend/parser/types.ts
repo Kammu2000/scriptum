@@ -6,7 +6,7 @@ export type Program = {
 } 
 
 // expression is something which has some value and it returns a value
-export type Expression = NumericLiteral | Identifier | BinayExpression | CallExpression | AssignmentExpression; 
+export type Expression = NumericLiteral | Identifier | BinaryExpression | CallExpression | AssignmentExpression; 
 
 // statement does not return any value. it is an action which is performing something 
 export type Statement = VariableDeclaration | IfStatement | WhileStatement | ExpressionStatement | FunctionDeclaration;
@@ -21,8 +21,8 @@ export type Identifier = {
   symbol: string;
 } 
 
-export type BinayExpression = {
-  kind: ExpressionKind.BinayExpression;
+export type BinaryExpression = {
+  kind: ExpressionKind.BinaryExpression;
   left: Expression;
   right: Expression;
   op: string;
@@ -54,7 +54,7 @@ export type ExpressionStatement = {
 }
 
 export type FunctionDeclaration = {
-  kind: StatementKind.ExpressionStatement;
+  kind: StatementKind.FunctionDeclaration;
 }
 
 export enum ProgramKind {
@@ -64,7 +64,7 @@ export enum ProgramKind {
 export enum ExpressionKind {
   NumericLiteral = "NumericLiteral",
   Identifier = "Identifier", 
-  BinayExpression = "BinayExpression",
+  BinaryExpression = "BinaryExpression",
   CallExpression = "CallExpression",
   AssignmentExpression = "AssignmentExpression",
 }
