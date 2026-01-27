@@ -48,6 +48,18 @@ export const tokenize = (sourceCode: string): Token[] => {
         break;
       } 
 
+      case "{": {
+        const token = { type: TokenType.OPEN_BRACES, value: sourceCode[idx++] };
+        tokens.push(token);
+        break;
+      }
+
+      case "}": {
+        const token = { type: TokenType.CLOSE_BRACES, value: sourceCode[idx++] };
+        tokens.push(token);
+        break;
+      }
+
       case "+":
       case "-":
       case "*":

@@ -39,6 +39,14 @@ function evaluate(expr: Expression, env: Environment | null): any {
       }
     }
 
+    case ExpressionKind.AssignmentExpression: {
+      const { identifier, value } = expr;
+
+      const computedValue = evaluate(value, env);
+      env?.assignVar(identifier, computedValue); 
+
+      return computedValue; 
+    }
 
     default:
       break;
@@ -51,12 +59,45 @@ function execute(stmt: Statement, env: Environment | null): void {
     case StatementKind.ExpressionStatement: {
       const { expression } = stmt;
       const val = evaluate(expression, env); 
-      console.log("deepanshu", val);
       return;
     }
+
+    case StatementKind.VariableDeclaration: {
+      const { identifier, value } = stmt;
+      const val = value ? evaluate(value, env): value;
+      env?.declareVar(identifier, val);
+      return; 
+    }
       
-    default:
-      break;
+    case StatementKind.IfStatement: {
+      const { condition, thenBlock, elseBlock } = stmt;
+      
+      if(evaluate(condition, env)){
+        execute(thenBlock, env);
+      }
+      else {
+        if(elseBlock)
+          execute(elseBlock, env);
+      }
+
+      return;
+    }
+
+
+    case StatementKind.BlockStatement: {
+      const { body } = stmt;
+      const childEnv = new Environment(env);
+
+      for(const newStmt of body){
+        execute(newStmt, childEnv);
+      }
+
+      return;
+    }
+
+    default: {
+      throw new Error("Statement could not be processed because of unknown syntax");
+    }
   }   
 }
 
@@ -66,13 +107,12 @@ function run(ast: Program, env: Environment | null): void {
   }
 }
 
-// console.log(JSON.stringify(ast));
-
-const code = "(x * (6 - 7)) + (3 + 4)"
+const code = "let x = 10 if(0) { let y = 10 x = y + (x * 8) } else if(x) { x = 0 } ";
 const parser = new Parser();
 
 const ast = parser.buildAST(code);
 const env = new Environment(null);
-env.declareVar("x", 5);
 
 run(ast, env);
+
+console.log(env);

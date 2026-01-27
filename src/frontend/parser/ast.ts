@@ -1,7 +1,7 @@
 // imports 
 import { tokenize } from "../lexer/tokenize";
 import { Token, TokenType } from "../lexer/types";
-import { Expression, Program, Statement, ProgramKind, ExpressionKind, StatementKind } from "./types";
+import { Expression, Program, Statement, ProgramKind, ExpressionKind, StatementKind, BlockStatement, ExpressionStatement, IfStatement, VariableDeclaration } from "./types";
 
 export default class Parser {
 
@@ -15,6 +15,10 @@ export default class Parser {
 
   peek(): Token {
     return this.tokens[this.pos];
+  }
+
+  next(): Token {
+    return this.tokens[this.pos + 1];
   }
 
   eat(): Token {
@@ -32,7 +36,7 @@ export default class Parser {
     };
     
     this.tokens = tokenize(sourceCode); 
-    
+
     while(!this.endOf()){
       const stmt = this.parseStatement();
       program.body.push(stmt);
@@ -42,13 +46,116 @@ export default class Parser {
   }
 
   private parseStatement(): Statement {
+    switch(this.peek().type){
+      case TokenType.LET: {
+        return this.parseVarDeclarationStatement();
+      } 
+
+      case TokenType.IF: {
+        return this.parseIfStatement();
+      }
+      
+      case TokenType.OPEN_BRACES: {
+        return this.parseBlockStatement();
+      }
+
+      default: 
+        return this.parseExpressionStatement();
+    }
+  }
+  
+  private parseVarDeclarationStatement(): VariableDeclaration {
+    this.eat(); // eat let token 
+    const identifier = this.eat().value;
+    let value;
+
+    if(this.peek().type === TokenType.EQUALS){
+      this.eat();
+      value = this.parseExpression();
+    }
+
+    return { kind: StatementKind.VariableDeclaration, identifier: identifier, value };      
+  }
+
+  private parseIfStatement(): IfStatement {
+    this.eat(); // eat if token
+
+    if(this.eat().type !== TokenType.OPEN_PARENTHESIS){
+      throw new Error("Expected open parenthesis while starting condition of if statement");
+    }
+
+    const condition = this.parseExpression();
+
+    if(this.eat().type !== TokenType.CLOSED_PARENTHESIS){
+      throw new Error("Expected closed parenthesis while ending condition of if statement");
+    }
+    
+    if(this.peek().type !== TokenType.OPEN_BRACES){
+      throw new Error("No open braces found at staring of if statement");
+    }
+
+    const thenBlock = this.parseBlockStatement(); 
+    let elseBlock;
+    
+    if(this.peek().type === TokenType.ELSE){
+      this.eat();
+      if(this.peek().type === TokenType.IF){
+        elseBlock = this.parseIfStatement();
+      }
+      else if(this.peek().type === TokenType.OPEN_BRACES){
+        elseBlock = this.parseBlockStatement();
+      }
+      else {
+        throw new Error("else statement should have block or a new if statement");
+      }
+    }
+
+    return { kind: StatementKind.IfStatement, condition, thenBlock, elseBlock };
+  }
+
+
+  private parseBlockStatement(): BlockStatement {
+    this.eat();
+
+    const body: Statement[] = [];
+
+    while(!this.endOf() && this.peek().type !== TokenType.CLOSE_BRACES){
+      const newStmt = this.parseStatement();
+      body.push(newStmt);
+    }
+    
+    if(this.peek().type !== TokenType.CLOSE_BRACES){
+      throw new Error("No closed braces found at the end of if statement");
+    }
+    else {
+      this.eat();
+    }
+    
+    return { kind: StatementKind.BlockStatement, body };
+  }
+
+private parseExpressionStatement(): ExpressionStatement {
     const expr = this.parseExpression();
     return { kind: StatementKind.ExpressionStatement, expression: expr };
   }
-  
+
   private parseExpression(): Expression {
+    return this.parseAssignmentExpression();
+  }
+
+  private parseAssignmentExpression(): Expression {
     
-    return this.parseAdditiveExpression();
+    if(this.next().type === TokenType.EQUALS){
+      if(this.peek().type !== TokenType.IDENTIFIER){
+        throw new Error("Invalid syntax, cannot assign a expression to anything other than identifier");
+      }
+
+      const identifier = this.eat().value;
+      this.eat(); // eat equals token 
+      return { kind: ExpressionKind.AssignmentExpression, identifier, value: this.parseExpression() };
+    }
+
+    return this.parseAdditiveExpression(); 
   }
 
   private parseAdditiveExpression(): Expression {
@@ -123,6 +230,7 @@ export default class Parser {
 
 
 // understanding priority order of different parts of language grammar is important 
+// 1. VariableDeclaration
 // 1. Assignment Expression 
 // 2. Additive expression 
 // 3. Multiplicative expression 

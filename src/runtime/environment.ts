@@ -1,5 +1,6 @@
 export default class Environment {
   private variables: Map<string, any> = new Map();
+
   private parent: Environment | null;
 
   constructor(par: Environment | null) {
@@ -9,7 +10,7 @@ export default class Environment {
 
   public declareVar(name: string, value: any): void {
     if(this.variables.has(name)){
-      throw new Error("Cannot redefine variable");
+      throw new Error(`Cannot redefine variable ${name}`);
     }
 
     this.variables.set(name, value);
@@ -23,7 +24,7 @@ export default class Environment {
     return;
   }
   
-  public resolveEnv(name: string): Environment {
+  private resolveEnv(name: string): Environment {
     if(this.variables.has(name))
       return this;
 

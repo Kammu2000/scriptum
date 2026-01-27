@@ -6,10 +6,10 @@ export type Program = {
 } 
 
 // expression is something which has some value and it returns a value
-export type Expression = NumericLiteral | Identifier | BinaryExpression | CallExpression | AssignmentExpression; 
+export type Expression = NumericLiteral | Identifier | BinaryExpression | AssignmentExpression | CallExpression; 
 
 // statement does not return any value. it is an action which is performing something 
-export type Statement = VariableDeclaration | IfStatement | WhileStatement | ExpressionStatement | FunctionDeclaration;
+export type Statement = ExpressionStatement | VariableDeclaration | IfStatement | BlockStatement | WhileStatement | FunctionDeclaration;
 
 export type NumericLiteral = {
   kind: ExpressionKind.NumericLiteral;
@@ -28,20 +28,27 @@ export type BinaryExpression = {
   op: string;
 }
 
+export type AssignmentExpression = {
+  kind: ExpressionKind.AssignmentExpression;
+  identifier: string;
+  value: Expression;
+}
+
 export type CallExpression = {
   kind: ExpressionKind.CallExpression;
 }
 
-export type AssignmentExpression = {
-  kind: ExpressionKind.AssignmentExpression;
-}
-
 export type VariableDeclaration = {
   kind: StatementKind.VariableDeclaration;
+  identifier: string;
+  value?: Expression;
 }
 
 export type IfStatement = {
   kind: StatementKind.IfStatement;
+  condition: Expression;
+  thenBlock: BlockStatement;
+  elseBlock?: BlockStatement | IfStatement;
 }
 
 export type WhileStatement = {
@@ -51,6 +58,11 @@ export type WhileStatement = {
 export type ExpressionStatement = {
   kind: StatementKind.ExpressionStatement;
   expression: Expression;
+}
+
+export type BlockStatement = {
+  kind: StatementKind.BlockStatement;
+  body: Statement[];
 }
 
 export type FunctionDeclaration = {
@@ -75,5 +87,6 @@ export enum StatementKind {
   WhileStatement = "WhileStatement",
   ExpressionStatement = "ExpressionStatement",
   FunctionDeclaration = "FunctionDeclaration",
+  BlockStatement = "BlockStatement",
 }
 
