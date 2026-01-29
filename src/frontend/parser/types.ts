@@ -53,6 +53,8 @@ export type IfStatement = {
 
 export type WhileStatement = {
   kind: StatementKind.WhileStatement;
+  condition: Expression;
+  body: BlockStatement;
 }
 
 export type ExpressionStatement = {

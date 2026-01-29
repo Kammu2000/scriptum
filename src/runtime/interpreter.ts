@@ -1,7 +1,8 @@
 // imports 
-import Parser from "../frontend/parser/ast";
+import ProgramParser from "../frontend/parser/programParser";
 import { Expression, ExpressionKind, Program, Statement, StatementKind } from "../frontend/parser/types";
 import Environment from "./environment";
+import fs from "node:fs";
 
 function evaluate(expr: Expression, env: Environment | null): any {
 
@@ -32,6 +33,24 @@ function evaluate(expr: Expression, env: Environment | null): any {
         case "%":
           return leftValue % rightValue;
        
+        case ">":
+          return Number(leftValue > rightValue);
+
+        case ">=":
+          return Number(leftValue >= rightValue);
+
+        case "<":
+          return Number(leftValue < rightValue);
+
+        case "<=":
+          return Number(leftValue <= rightValue);
+
+        case "===":
+          return Number(leftValue === rightValue);
+
+        case "!==":
+          return Number(leftValue !== rightValue);
+
         default: {
           console.error(`Could not identify the operator ${expr.op}`);
           process.exit(1);
@@ -64,7 +83,7 @@ function execute(stmt: Statement, env: Environment | null): void {
 
     case StatementKind.VariableDeclaration: {
       const { identifier, value } = stmt;
-      const val = value ? evaluate(value, env): value;
+      const val = value !== undefined ? evaluate(value, env): value;
       env?.declareVar(identifier, val);
       return; 
     }
@@ -83,6 +102,15 @@ function execute(stmt: Statement, env: Environment | null): void {
       return;
     }
 
+    case StatementKind.WhileStatement: {
+      const { condition, body } = stmt;
+      
+      while(evaluate(condition, env)){
+        execute(body, env)
+      }
+
+      return;
+    }
 
     case StatementKind.BlockStatement: {
       const { body } = stmt;
@@ -107,8 +135,8 @@ function run(ast: Program, env: Environment | null): void {
   }
 }
 
-const code = "let x = 10 if(0) { let y = 10 x = y + (x * 8) } else if(x) { x = 0 } ";
-const parser = new Parser();
+const code = fs.readFileSync("../testFiles/test1.txt", "utf8");  
+const parser = new ProgramParser();
 
 const ast = parser.buildAST(code);
 const env = new Environment(null);

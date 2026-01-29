@@ -1,5 +1,5 @@
 // imports 
-import { TokenType, Token, reserveWords } from "./types";
+import { TokenType, Token, RESERVED_WORDS } from "./types";
 import { isAlpha, isAlphaNumeric, isDigit } from "./helpers";
 
 export const tokenize = (sourceCode: string): Token[] => {
@@ -27,8 +27,8 @@ export const tokenize = (sourceCode: string): Token[] => {
       idx++;
     }
     
-    if(reserveWords.has(word)){
-      return { type: reserveWords.get(word), value: word } as Token;
+    if(RESERVED_WORDS.has(word)){
+      return { type: RESERVED_WORDS.get(word), value: word } as Token;
     }
 
     return { type: TokenType.IDENTIFIER, value: word };
@@ -55,11 +55,17 @@ export const tokenize = (sourceCode: string): Token[] => {
       }
 
       case "}": {
-        const token = { type: TokenType.CLOSE_BRACES, value: sourceCode[idx++] };
+        const token = { type: TokenType.CLOSED_BRACES, value: sourceCode[idx++] };
         tokens.push(token);
         break;
       }
 
+      case "===":
+      case "!==":
+      case ">":
+      case "<":
+      case ">=":
+      case "<=":
       case "+":
       case "-":
       case "*":
