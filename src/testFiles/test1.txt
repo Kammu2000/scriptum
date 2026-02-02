@@ -1,12 +1,17 @@
-let x = 0 
+let n = 20
 
-while(x < 20){
-  x = x + 1
+function square(i){
+  return i * i
 }
 
-if(x === 20){
-  x = -5
+function fn(n){
+  if(n === 1){
+    return 1
+  }
+  
+  return n * fn(n - 1) 
 }
-else {
-  x = -10
-}
+
+
+print(fn(3))
+

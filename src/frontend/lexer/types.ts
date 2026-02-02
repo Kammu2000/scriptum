@@ -13,6 +13,7 @@ export enum TokenType {
   // operators
   BINARY_OPERATOR = "BINARY_OPERATOR",
   EQUALS = "EQUALS",
+  COMMA = "COMMA",
 
   // RESERVED_WORDS
   LET = "LET",
@@ -20,6 +21,8 @@ export enum TokenType {
   ELSE = "ELSE",
   FOR = "FOR",
   WHILE = "WHILE",
+  FUNCTION = "FUNCTION",
+  RETURN = "RETURN",
 
   // end of file 
   EOF = "EOF",
@@ -30,5 +33,6 @@ export interface Token {
   value: string;
 }
 
-export const RESERVED_WORDS = new Map<string, TokenType>([["let", TokenType.LET], ["if", TokenType.IF], ["else", TokenType.ELSE], ["for", TokenType.FOR], ["while", TokenType.WHILE]]);
+const reservedWords: Array<[string, TokenType]> = [["let", TokenType.LET], ["if", TokenType.IF], ["else", TokenType.ELSE], ["for", TokenType.FOR], ["while", TokenType.WHILE], ["function", TokenType.FUNCTION], ["return", TokenType.RETURN]];
+export const RESERVED_WORDS = new Map<string, TokenType>(reservedWords);
 

@@ -1,6 +1,8 @@
 // imports 
 import { TokenType, Token, RESERVED_WORDS } from "./types";
 import { isAlpha, isAlphaNumeric, isDigit } from "./helpers";
+import fs from "node:fs";
+import path from "node:path";
 
 export const tokenize = (sourceCode: string): Token[] => {
   const tokens: Token[] = [];
@@ -60,12 +62,50 @@ export const tokenize = (sourceCode: string): Token[] => {
         break;
       }
 
-      case "===":
-      case "!==":
-      case ">":
-      case "<":
-      case ">=":
-      case "<=":
+      case "!": {
+        if(idx + 2 < srcLen && sourceCode[idx + 1] === "=" && sourceCode[idx + 2] === "="){
+          const token = { type: TokenType.BINARY_OPERATOR, value: "!==" };
+          tokens.push(token);
+          idx += 3;
+        } 
+        else {
+            throw new Error("Unknown character group found starting from !");
+        }
+
+        break;
+      }
+
+
+      case ">": {
+        if(idx + 1 < srcLen && sourceCode[idx + 1] === "="){
+          const token = { type: TokenType.BINARY_OPERATOR, value: ">=" };
+          tokens.push(token);
+          idx += 2;
+        }
+        else {
+          const token = { type: TokenType.BINARY_OPERATOR, value: ">" };
+          tokens.push(token);
+          idx += 1;
+        }
+
+        break;
+      }
+
+      case "<": {
+        if(idx + 1 < srcLen && sourceCode[idx + 1] === "="){
+          const token = { type: TokenType.BINARY_OPERATOR, value: "<=" };
+          tokens.push(token);
+          idx += 2;
+        }
+        else {
+          const token = { type: TokenType.BINARY_OPERATOR, value: "<" };
+          tokens.push(token);
+          idx += 1;
+        }
+
+        break;
+      }
+
       case "+":
       case "-":
       case "*":
@@ -74,7 +114,13 @@ export const tokenize = (sourceCode: string): Token[] => {
         tokens.push(token);
         break;
       }
-      
+     
+      case ",": {
+        const token = { type: TokenType.COMMA, value: sourceCode[idx++] };
+        tokens.push(token);
+        break;
+      }
+
       case " ":
       case "\n":
       case "\t":{
@@ -83,8 +129,45 @@ export const tokenize = (sourceCode: string): Token[] => {
       }
 
       case "=": {
-        const token = { type: TokenType.EQUALS, value: sourceCode[idx++] };
-        tokens.push(token);
+        if(idx + 2 < srcLen && sourceCode[idx + 1] === "=" && sourceCode[idx + 1] === sourceCode[idx + 2]){
+          const token = { type: TokenType.BINARY_OPERATOR, value: "==="};
+          tokens.push(token);
+          idx += 3;
+        }
+        else if(idx + 1 < srcLen && sourceCode[idx + 1] === "="){
+          throw new Error("Invalid character group == found in code");
+        }
+        else {
+          const token = { type: TokenType.EQUALS, value: "=" };
+          tokens.push(token);
+          idx += 1;
+        }
+        break;
+      }
+
+      case "&": {
+        if(idx + 1 < srcLen && sourceCode[idx + 1] === "&"){
+          const token = { type: TokenType.BINARY_OPERATOR, value: "&&" };
+          tokens.push(token);
+          idx += 2;
+        } 
+        else {
+          throw new Error("Unknown character &");
+        }
+
+        break;
+      }
+
+      case "|": {
+        if(idx + 1 < srcLen && sourceCode[idx + 1] === "|"){
+          const token = { type: TokenType.BINARY_OPERATOR, value: "||" };
+          tokens.push(token);
+          idx += 2;
+        } 
+        else {
+          throw new Error("Unknown character |");
+       }
+
         break;
       }
 

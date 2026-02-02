@@ -9,8 +9,9 @@ export type Program = {
 export type Expression = NumericLiteral | Identifier | BinaryExpression | AssignmentExpression | CallExpression; 
 
 // statement does not return any value. it is an action which is performing something 
-export type Statement = ExpressionStatement | VariableDeclaration | IfStatement | BlockStatement | WhileStatement | FunctionDeclaration;
+export type Statement = ExpressionStatement | VariableDeclaration | IfStatement | BlockStatement | WhileStatement | ReturnStatement | FunctionDeclaration;
 
+// expression types 
 export type NumericLiteral = {
   kind: ExpressionKind.NumericLiteral;
   value: number;
@@ -30,30 +31,34 @@ export type BinaryExpression = {
 
 export type AssignmentExpression = {
   kind: ExpressionKind.AssignmentExpression;
-  identifier: string;
-  value: Expression;
+  op: string;
+  left: Identifier;
+  right: Expression;
 }
 
 export type CallExpression = {
   kind: ExpressionKind.CallExpression;
+  callee: Expression;
+  args: Expression[];
 }
 
+// statement types
 export type VariableDeclaration = {
   kind: StatementKind.VariableDeclaration;
-  identifier: string;
-  value?: Expression;
+  id: Identifier;
+  init?: Expression;
 }
 
 export type IfStatement = {
   kind: StatementKind.IfStatement;
-  condition: Expression;
+  test: Expression;
   thenBlock: BlockStatement;
   elseBlock?: BlockStatement | IfStatement;
 }
 
 export type WhileStatement = {
   kind: StatementKind.WhileStatement;
-  condition: Expression;
+  test: Expression;
   body: BlockStatement;
 }
 
@@ -67,8 +72,16 @@ export type BlockStatement = {
   body: Statement[];
 }
 
+export type ReturnStatement = {
+  kind: StatementKind.ReturnStatement;
+  argument?: Expression;
+}
+
 export type FunctionDeclaration = {
   kind: StatementKind.FunctionDeclaration;
+  id: Identifier;
+  params: Identifier[],
+  body: BlockStatement;
 }
 
 export enum ProgramKind {
@@ -88,6 +101,7 @@ export enum StatementKind {
   IfStatement = "IfStatement",
   WhileStatement = "WhileStatement",
   ExpressionStatement = "ExpressionStatement",
+  ReturnStatement = "ReturnStatement",
   FunctionDeclaration = "FunctionDeclaration",
   BlockStatement = "BlockStatement",
 }

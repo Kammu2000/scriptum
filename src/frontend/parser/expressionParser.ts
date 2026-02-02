@@ -1,8 +1,9 @@
 // imports 
 import { TokenType } from "../lexer/types";
-import { ExpressionKind, Expression } from "./types";
+import { ExpressionKind, Expression, NumericLiteral, Identifier } from "./types";
 import ParserContext from "./parserContext";
 
+const ASSIGNMENT_OPERATORS = new Set(["=", "+=", "-=", "*=", "/="]);
 const EQUALITY_OPERATORS = new Set(["===", "!=="]);
 const COMPARISON_OPERATORS = new Set([">", "<", ">=", "<="]);
 const ADDITIVE_OPERATORS = new Set(["+", "-"]);
@@ -19,22 +20,24 @@ export default class ExpressionParser {
     return this.parseAssignmentExpression();
   }
 
-  private parseAssignmentExpression(): Expression {
-    
-    if(this.parserContext.next().type === TokenType.EQUALS){
-      if(this.parserContext.peek().type !== TokenType.IDENTIFIER){
+  public parseAssignmentExpression(): Expression {
+    const left = this.parseLogicalOrExpression();
+
+    if(ASSIGNMENT_OPERATORS.has(this.parserContext.peek().value)){
+      // TODO: Later left side can be an assignable expression like member expression obj.x (identifier will work now)
+
+      if(left.kind !== ExpressionKind.Identifier){
         throw new Error("Invalid syntax, cannot assign a expression to anything other than identifier");
       }
 
-      const identifier = this.parserContext.eat().value;
-      this.parserContext.eat(); // eat equals token 
-      return { kind: ExpressionKind.AssignmentExpression, identifier, value: this.parseExpression() };
+      const op = this.parserContext.eat().value; // eat assignemnt token 
+      return { kind: ExpressionKind.AssignmentExpression, left, right: this.parseAssignmentExpression(), op };
     }
 
-    return this.parseLogialOrExpression(); 
+    return left;
   }
 
-  private parseLogialOrExpression(): Expression {
+  public parseLogicalOrExpression(): Expression {
     let left = this.parseLogicalAndExpression();
 
     
@@ -53,7 +56,7 @@ export default class ExpressionParser {
     return left;
   }
 
-  private parseLogicalAndExpression(): Expression {
+  public parseLogicalAndExpression(): Expression {
     let left = this.parseEqualityExpression();
 
     
@@ -72,13 +75,13 @@ export default class ExpressionParser {
     return left;
   }
 
-  private parseEqualityExpression(): Expression {
-    let left = this.parseComaprisonExpression();
+  public parseEqualityExpression(): Expression {
+    let left = this.parseComparisonExpression();
 
     
     while(EQUALITY_OPERATORS.has(this.parserContext.peek().value)){
       const op = this.parserContext.eat().value;
-      const right = this.parseComaprisonExpression();
+      const right = this.parseComparisonExpression();
 
       left = {
         kind: ExpressionKind.BinaryExpression,
@@ -91,7 +94,7 @@ export default class ExpressionParser {
     return left;
   }
 
-  private parseComaprisonExpression(): Expression {
+  public parseComparisonExpression(): Expression {
     let left = this.parseAdditiveExpression();
 
     
@@ -110,7 +113,7 @@ export default class ExpressionParser {
     return left;
   }
 
-  private parseAdditiveExpression(): Expression {
+  public parseAdditiveExpression(): Expression {
     let left = this.parseMultiplicativeExpression();
 
     while(ADDITIVE_OPERATORS.has(this.parserContext.peek().value)){
@@ -129,13 +132,12 @@ export default class ExpressionParser {
   }
 
 
-  private parseMultiplicativeExpression(): Expression {
-    
-    let left = this.parsePrimaryExpression();
+  public parseMultiplicativeExpression(): Expression {
+    let left = this.parseCallExpression();
 
     while(MULTIPLICATIVE_OPERATORS.has(this.parserContext.peek().value)){
       const op = this.parserContext.eat().value;
-      const right = this.parsePrimaryExpression();
+      const right = this.parseCallExpression();
       left = {
         kind: ExpressionKind.BinaryExpression,
         left,
@@ -148,27 +150,43 @@ export default class ExpressionParser {
     return left; 
   }
 
-  private parsePrimaryExpression(): Expression {
+  public parseCallExpression(): Expression {
+    let expr = this.parsePrimaryExpression();
+
+    while(this.parserContext.peek().type === TokenType.OPEN_PARENTHESIS){
+      this.parserContext.eat(); // eat '(' 
+
+      const args = this.parseArguments();
+        expr = {
+        kind: ExpressionKind.CallExpression,
+        callee: expr,
+        args
+      }
+
+      if(this.parserContext.peek().type === TokenType.CLOSED_PARENTHESIS){
+        this.parserContext.eat();
+      }
+      else {
+        throw new Error("No matching closed parenthesis");
+      }
+    }
+
+    return expr;
+  }
+
+  public parsePrimaryExpression(): Expression {
     
     switch (this.parserContext.peek().type) {
       case TokenType.NUMBER:{
-        return { kind: ExpressionKind.NumericLiteral, value: parseFloat(this.parserContext.eat().value) };
+        return this.parseNumericLiteral();
       }
         
       case TokenType.IDENTIFIER: {
-        return { kind: ExpressionKind.Identifier, symbol: this.parserContext.eat().value };  
+        return this.parseIdentifier();  
       }
     
       case TokenType.OPEN_PARENTHESIS: {
-        this.parserContext.eat();
-        const expr = this.parseExpression();
-
-        if(this.parserContext.eat().type !== TokenType.CLOSED_PARENTHESIS){
-          console.error("Non-matching parenthesis are not allowed");
-          process.exit(1);
-        }
-
-        return expr;
+        return this.parseGroupedExpression();
       }
 
       default: {
@@ -178,6 +196,64 @@ export default class ExpressionParser {
     }
   }
 
+  public parseIdentifier(): Identifier {
+    if (this.parserContext.peek().type !== TokenType.IDENTIFIER) {
+      throw new Error("Expected identifier");
+    }
+
+    return {
+      kind: ExpressionKind.Identifier,
+      symbol: this.parserContext.eat().value,
+    };
+  }
+
+  public parseNumericLiteral(): NumericLiteral {
+    if(this.parserContext.peek().type !== TokenType.NUMBER){
+      throw new Error("Expected number");
+    }
+
+    return {
+      kind: ExpressionKind.NumericLiteral,
+      value: parseFloat(this.parserContext.eat().value),
+    };
+  }
+
+  public parseGroupedExpression(): Expression {
+    if(this.parserContext.peek().type !== TokenType.OPEN_PARENTHESIS){
+      throw new Error("Expected open parenthesis");
+    }
+
+    this.parserContext.eat(); // '('
+    const expr = this.parseExpression();
+
+    if (this.parserContext.peek().type !== TokenType.CLOSED_PARENTHESIS) {
+      throw new Error("Non-matching parenthesis");
+    }
+
+    this.parserContext.eat(); // ')'
+    return expr;
+  }
+
+  public parseArguments(): Expression[] {
+    const args: Expression[] = [];
+
+    if(this.parserContext.peek().type === TokenType.CLOSED_PARENTHESIS){
+      return args;
+    }
+
+    args.push(this.parseExpression());
+
+    while(!this.parserContext.endOf() && this.parserContext.peek().type === TokenType.COMMA){
+      this.parserContext.eat(); // eat comma 
+      args.push(this.parseExpression());
+    }
+    
+    if(this.parserContext.peek().type !== TokenType.CLOSED_PARENTHESIS){
+      throw new Error("No matching closed parenthesis")
+    }
+    
+    return args;
+  } 
 }
 
 // priority order of operators in expression parsing  
@@ -185,6 +261,7 @@ export default class ExpressionParser {
 // 2. Assignment Operator 
 // 3. Logical Operators
 // 4. Comparison Operators 
-// 4. Additive Operators 
-// 5. Multiplicative Operators 
-// 6. Primary expression
+// 5. Additive Operators 
+// 6. Multiplicative Operators 
+// 7. Call Expression 
+// 8. Primary expression

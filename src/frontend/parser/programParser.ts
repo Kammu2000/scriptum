@@ -24,6 +24,5 @@ export default class ProgramParser {
 
     return program;
   }
-
 }
 
