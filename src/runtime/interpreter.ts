@@ -2,10 +2,10 @@
 import ProgramParser from "../frontend/parser/programParser";
 import { Expression, ExpressionKind, Identifier, Program, Statement, StatementKind } from "../frontend/parser/types";
 import Environment from "./environment";
-import fs from "node:fs";
-import path from "node:path";
 import { ReturnSignal } from "./signals";
 import { loadStdlib } from "../stdlib";
+import fs from "node:fs";
+import path from "node:path";
 
 function evaluate(expr: Expression, env: Environment | null): any {
 

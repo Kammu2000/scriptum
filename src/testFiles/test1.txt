@@ -1,17 +1,19 @@
-let n = 20
+let n = 10
+let i = 1
 
-function square(i){
-  return i * i
+function increment(x){
+  return x + 1
 }
 
-function fn(n){
-  if(n === 1){
-    return 1
+function square(k, fn){
+
+  while(k < 10){
+     k = k + 1
   }
-  
-  return n * fn(n - 1) 
+
+  return fn(k) * fn(k) 
 }
 
+let ans = square(5, increment)
 
-print(fn(3))
-
+print(ans)

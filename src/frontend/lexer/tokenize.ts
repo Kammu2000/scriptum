@@ -1,8 +1,6 @@
 // imports 
 import { TokenType, Token, RESERVED_WORDS } from "./types";
 import { isAlpha, isAlphaNumeric, isDigit } from "./helpers";
-import fs from "node:fs";
-import path from "node:path";
 
 export const tokenize = (sourceCode: string): Token[] => {
   const tokens: Token[] = [];
@@ -106,6 +104,7 @@ export const tokenize = (sourceCode: string): Token[] => {
         break;
       }
 
+      case "%":
       case "+":
       case "-":
       case "*":
