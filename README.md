@@ -1,6 +1,6 @@
 # Script Interpreter
 
-A simple scripting language interpreter written in C++. This is version 1 of the interpreter.
+A simple scripting language tree walk interpreter written in C++. This is version 1 of the interpreter.
 
 ## Language Features
 
@@ -71,4 +71,7 @@ Example:
 - Array and object data structures
 - For loops
 - Additional operators (unary operators, ternary, etc.)
-
+- Bytecode compiler
+- Stack-based virtual machine
+- Garbage collector
+- JIT
