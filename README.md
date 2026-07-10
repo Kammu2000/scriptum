@@ -1,6 +1,6 @@
 # Script Interpreter
 
-A simple scripting language interpreter built with TypeScript. This is version 1 of the interpreter.
+A simple scripting language interpreter written in C++. This is version 1 of the interpreter.
 
 ## Language Features
 
@@ -44,6 +44,25 @@ A simple scripting language interpreter built with TypeScript. This is version 1
 - Lexical scoping with environment-based variable resolution
 - Proper operator precedence
 - First-class functions (can be stored in variables and passed as arguments)
+
+## Build
+
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
+## Run
+
+```bash
+./build/scriptum path/to/script.txt
+```
+
+Example:
+
+```bash
+./build/scriptum testFiles/test1.txt
+```
 
 
 ## To Dos for Future  
