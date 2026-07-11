@@ -25,6 +25,8 @@ enum class NativeFnId
 
 struct NativeFunction
 {
+    // Design Note: arity is number of params a native function accepts
+    // std::nullopt means function can accept any number of params
     std::optional<std::size_t> arity;
     NativeFnId id;
 };

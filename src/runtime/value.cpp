@@ -81,8 +81,6 @@ Value nativeType(const std::vector<Value>& args, Environment&)
             result.string = "string";
             break;
         case Value::Kind::Function:
-            result.string = "function";
-            break;
         case Value::Kind::Native:
             result.string = "function";
             break;

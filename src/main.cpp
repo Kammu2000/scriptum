@@ -13,6 +13,7 @@ namespace {
 std::string readFile(const std::string& path)
 {
     std::ifstream file(path);
+
     if (!file)
     {
         throw std::runtime_error("Could not open file: " + path);
@@ -36,6 +37,7 @@ int main(int argc, char* argv[])
     try
     {
         const std::string code = readFile(argv[1]);
+
         scriptum::ProgramParser parser;
         const scriptum::Program ast = parser.buildAST(code);
 
@@ -43,9 +45,9 @@ int main(int argc, char* argv[])
         scriptum::loadStdlib(env);
         scriptum::run(ast, &env);
     }
-    catch (const std::exception& ex)
+    catch (const std::exception& error)
     {
-        std::println(stderr, "Error: {}", ex.what());
+        std::println(stderr, "Error: {}", error.what());
         return 1;
     }
 
