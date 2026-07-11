@@ -5,8 +5,8 @@
 
 namespace scriptum {
 
-Value evaluate(const Expression& expr, Environment* env);
 void execute(const Statement& stmt, Environment* env);
+void executeBlock(const BlockStatement& block, Environment* parentEnv);
 void run(const Program& program, Environment* env);
 
 } // namespace scriptum

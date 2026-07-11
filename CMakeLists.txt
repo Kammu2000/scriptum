@@ -18,6 +18,7 @@ add_library(scriptum_lib
     src/runtime/environment.cpp
     src/runtime/value.cpp
     src/runtime/return_signal.cpp
+    src/runtime/evaluate_expression.cpp
     src/runtime/interpreter.cpp
     src/stdlib/globals.cpp
 )

@@ -6,17 +6,8 @@ namespace {
 
 void registerGlobals(Environment& env)
 {
-    Value printFn;
-    printFn.kind = Value::Kind::Native;
-    printFn.nativeFunction.arity = std::nullopt;
-    printFn.nativeFunction.id = NativeFnId::Print;
-    env.declareVar("print", printFn);
-
-    Value typeFn;
-    typeFn.kind = Value::Kind::Native;
-    typeFn.nativeFunction.arity = 1;
-    typeFn.nativeFunction.id = NativeFnId::Type;
-    env.declareVar("type", typeFn);
+    env.declareVar("print", Value{NativeFunction{NativeFnId::Print, std::nullopt}});
+    env.declareVar("type", Value{NativeFunction{NativeFnId::Type, 1}});
 }
 
 } // namespace
