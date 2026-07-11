@@ -7,6 +7,11 @@ ParserContext::ParserContext(std::vector<Token> tokens, std::size_t pos)
 {
 }
 
+std::size_t ParserContext::getPos() const
+{
+    return m_pos;
+}
+
 const Token& ParserContext::peek() const
 {
     return m_tokens[m_pos];

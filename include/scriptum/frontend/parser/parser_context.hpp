@@ -12,6 +12,7 @@ class ParserContext
   public:
     ParserContext(std::vector<Token> tokens, std::size_t pos);
 
+    std::size_t getPos() const;
     const Token& peek() const;
     const Token& next() const;
     Token eat();

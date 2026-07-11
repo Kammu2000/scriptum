@@ -1,7 +1,11 @@
+#include "scriptum/frontend/parser/ast.hpp"
+#include <format>
+#include <memory>
 #include <stdexcept>
 
 #include <scriptum/frontend/parser/statement_parser.hpp>
 #include <scriptum/frontend/lexer/token.hpp>
+#include <utility>
 
 namespace scriptum {
 
@@ -22,7 +26,8 @@ StmtPtr StatementParser::parseStatement()
             return parseWhileStatement();
         case TokenType::OpenBraces: {
             BlockStmtPtr block = parseBlockStatement();
-            return Statement::makeBlockStatement(std::move(block->body));
+            return std::make_unique<Statement>(std::in_place_type<BlockStatement>,
+                                                 std::move(block->body));
         }
         case TokenType::Return:
             return parseReturnStatement();
@@ -39,7 +44,8 @@ StmtPtr StatementParser::parseVarDeclaration()
 
     if (m_ctx.peek().type != TokenType::Identifier)
     {
-        throw std::runtime_error("Variable declaration should contain identifier after let");
+        throw std::runtime_error(
+            std::format("No identifier in variable declaration after let at: {}", m_ctx.getPos()));
     }
 
     const Identifier identifier = m_expressionParser.parseIdentifier();
@@ -51,7 +57,8 @@ StmtPtr StatementParser::parseVarDeclaration()
         init = m_expressionParser.parseExpression();
     }
 
-    return Statement::makeVariableDeclaration(identifier, std::move(init));
+    return std::make_unique<Statement>(std::in_place_type<VariableDeclaration>,
+                                         std::move(identifier), std::move(init));
 }
 
 StmtPtr StatementParser::parseIfStatement()
@@ -72,22 +79,26 @@ StmtPtr StatementParser::parseIfStatement()
         else if (m_ctx.peek().type == TokenType::OpenBraces)
         {
             BlockStmtPtr block = parseBlockStatement();
-            elseBlock = Statement::makeBlockStatement(std::move(block->body));
+            elseBlock = std::make_unique<Statement>(std::in_place_type<BlockStatement>,
+                                                      std::move(block->body));
         }
         else
         {
-            throw std::runtime_error("else statement should have block or a new if statement");
+            throw std::runtime_error(
+                std::format("No block or if statement along with else at: ", m_ctx.getPos()));
         }
     }
 
-    return Statement::makeIfStatement(std::move(test), std::move(thenBlock), std::move(elseBlock));
+    return std::make_unique<Statement>(std::in_place_type<IfStatement>, std::move(test),
+                                         std::move(thenBlock), std::move(elseBlock));
 }
 
 BlockStmtPtr StatementParser::parseBlockStatement()
 {
     if (m_ctx.peek().type != TokenType::OpenBraces)
     {
-        throw std::runtime_error("No open braces found at staring of in block statement");
+        throw std::runtime_error(std::format(
+            "No open braces found in staring of block statement at: {}", m_ctx.getPos()));
     }
     m_ctx.eat();
 
@@ -100,13 +111,12 @@ BlockStmtPtr StatementParser::parseBlockStatement()
 
     if (m_ctx.peek().type != TokenType::ClosedBraces)
     {
-        throw std::runtime_error("No matching closed braces for open braces");
+        throw std::runtime_error(
+            std::format("No matching closed braces for open braces at: {}", m_ctx.getPos()));
     }
     m_ctx.eat();
 
-    auto block = std::make_unique<BlockStatement>();
-    block->body = std::move(body);
-    return block;
+    return std::make_unique<BlockStatement>(std::move(body));
 }
 
 StmtPtr StatementParser::parseWhileStatement()
@@ -114,7 +124,8 @@ StmtPtr StatementParser::parseWhileStatement()
     m_ctx.eat();
     ExprPtr test = m_expressionParser.parseGroupedExpression();
     BlockStmtPtr loopBody = parseBlockStatement();
-    return Statement::makeWhileStatement(std::move(test), std::move(loopBody));
+    return std::make_unique<Statement>(std::in_place_type<WhileStatement>, std::move(test),
+                                         std::move(loopBody));
 }
 
 StmtPtr StatementParser::parseReturnStatement()
@@ -123,10 +134,11 @@ StmtPtr StatementParser::parseReturnStatement()
 
     if (m_ctx.peek().type == TokenType::ClosedBraces)
     {
-        return Statement::makeReturnStatement(std::nullopt);
+        return std::make_unique<Statement>(std::in_place_type<ReturnStatement>, std::nullopt);
     }
 
-    return Statement::makeReturnStatement(m_expressionParser.parseExpression());
+    return std::make_unique<Statement>(std::in_place_type<ReturnStatement>,
+                                         m_expressionParser.parseExpression());
 }
 
 StmtPtr StatementParser::parseFunctionDeclaration()
@@ -142,7 +154,8 @@ StmtPtr StatementParser::parseFunctionDeclaration()
 
     if (m_ctx.peek().type != TokenType::OpenParenthesis)
     {
-        throw std::runtime_error("function definition is not correct, no parenthesis after name");
+        throw std::runtime_error(
+            std::format("function definition is not correct, no parenthesis after: {}", id.symbol));
     }
     m_ctx.eat();
 
@@ -152,17 +165,18 @@ StmtPtr StatementParser::parseFunctionDeclaration()
     {
         if (m_ctx.peek().type != TokenType::Identifier)
         {
-            throw std::runtime_error("function parameter is not an identifier");
+            throw std::runtime_error(
+                std::format("function parameter is not an identifier for function: {}", id.symbol));
         }
 
-        params.push_back(m_expressionParser.parseIdentifier());
+        params.emplace_back(m_expressionParser.parseIdentifier());
 
         if (m_ctx.peek().type == TokenType::Comma)
         {
             if (m_ctx.next().type == TokenType::ClosedParenthesis)
             {
-                throw std::runtime_error(
-                    "Trailing comma is not allowed after all function parameters");
+                throw std::runtime_error(std::format(
+                    "Trailing comma after all function parameters for function: {}", id.symbol));
             }
             m_ctx.eat();
         }
@@ -174,17 +188,19 @@ StmtPtr StatementParser::parseFunctionDeclaration()
 
     if (m_ctx.eat().type != TokenType::ClosedParenthesis)
     {
-        throw std::runtime_error(
-            "No matching closed parenthesis was found in function declaration");
+        throw std::runtime_error(std::format(
+            "No matching closed parenthesis was found in function declaration of: {}", id.symbol));
     }
 
     BlockStmtPtr body = parseBlockStatement();
-    return Statement::makeFunctionDeclaration(id, std::move(params), std::move(body));
+    return std::make_unique<Statement>(std::in_place_type<FunctionDeclaration>, std::move(id),
+                                         std::move(params), std::move(body));
 }
 
 StmtPtr StatementParser::parseExpressionStatement()
 {
-    return Statement::makeExpressionStatement(m_expressionParser.parseExpression());
+    return std::make_unique<Statement>(std::in_place_type<ExpressionStatement>,
+                                         m_expressionParser.parseExpression());
 }
 
 } // namespace scriptum

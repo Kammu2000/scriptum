@@ -30,15 +30,16 @@ ExprPtr ExpressionParser::parseAssignmentExpression()
 
     if (kAssignmentOperators.count(m_ctx.peek().value) > 0)
     {
-        if (left->kind != ExpressionKind::Identifier)
+        const Identifier* const id = std::get_if<Identifier>(&left->node);
+        if (id == nullptr)
         {
             throw std::runtime_error(
                 "Invalid syntax, cannot assign a expression to anything other than identifier");
         }
 
         const std::string op = m_ctx.eat().value;
-        return Expression::makeAssignmentExpression(left->identifier, parseAssignmentExpression(),
-                                                    op);
+        return std::make_unique<Expression>(std::in_place_type<AssignmentExpression>, *id,
+                                              parseAssignmentExpression(), op);
     }
 
     return left;
@@ -52,7 +53,8 @@ ExprPtr ExpressionParser::parseLogicalOrExpression()
     {
         const std::string op = m_ctx.eat().value;
         auto right = parseLogicalAndExpression();
-        left = Expression::makeBinaryExpression(std::move(left), std::move(right), op);
+        left = std::make_unique<Expression>(std::in_place_type<BinaryExpression>, std::move(left),
+                                              std::move(right), op);
     }
 
     return left;
@@ -66,7 +68,8 @@ ExprPtr ExpressionParser::parseLogicalAndExpression()
     {
         const std::string op = m_ctx.eat().value;
         auto right = parseEqualityExpression();
-        left = Expression::makeBinaryExpression(std::move(left), std::move(right), op);
+        left = std::make_unique<Expression>(std::in_place_type<BinaryExpression>, std::move(left),
+                                              std::move(right), op);
     }
 
     return left;
@@ -80,7 +83,8 @@ ExprPtr ExpressionParser::parseEqualityExpression()
     {
         const std::string op = m_ctx.eat().value;
         auto right = parseComparisonExpression();
-        left = Expression::makeBinaryExpression(std::move(left), std::move(right), op);
+        left = std::make_unique<Expression>(std::in_place_type<BinaryExpression>, std::move(left),
+                                              std::move(right), op);
     }
 
     return left;
@@ -94,7 +98,8 @@ ExprPtr ExpressionParser::parseComparisonExpression()
     {
         const std::string op = m_ctx.eat().value;
         auto right = parseAdditiveExpression();
-        left = Expression::makeBinaryExpression(std::move(left), std::move(right), op);
+        left = std::make_unique<Expression>(std::in_place_type<BinaryExpression>, std::move(left),
+                                              std::move(right), op);
     }
 
     return left;
@@ -108,7 +113,8 @@ ExprPtr ExpressionParser::parseAdditiveExpression()
     {
         const std::string op = m_ctx.eat().value;
         auto right = parseMultiplicativeExpression();
-        left = Expression::makeBinaryExpression(std::move(left), std::move(right), op);
+        left = std::make_unique<Expression>(std::in_place_type<BinaryExpression>, std::move(left),
+                                              std::move(right), op);
     }
 
     return left;
@@ -122,7 +128,8 @@ ExprPtr ExpressionParser::parseMultiplicativeExpression()
     {
         const std::string op = m_ctx.eat().value;
         auto right = parseCallExpression();
-        left = Expression::makeBinaryExpression(std::move(left), std::move(right), op);
+        left = std::make_unique<Expression>(std::in_place_type<BinaryExpression>, std::move(left),
+                                              std::move(right), op);
     }
 
     return left;
@@ -136,7 +143,8 @@ ExprPtr ExpressionParser::parseCallExpression()
     {
         m_ctx.eat();
         auto args = parseArguments();
-        expr = Expression::makeCallExpression(std::move(expr), std::move(args));
+        expr = std::make_unique<Expression>(std::in_place_type<CallExpression>, std::move(expr),
+                                              std::move(args));
 
         if (m_ctx.peek().type == TokenType::ClosedParenthesis)
         {
@@ -158,8 +166,8 @@ ExprPtr ExpressionParser::parsePrimaryExpression()
         case TokenType::Number:
             return parseNumericLiteral();
         case TokenType::Identifier: {
-            const Identifier id = parseIdentifier();
-            return Expression::makeIdentifier(id.symbol);
+            Identifier id = parseIdentifier();
+            return std::make_unique<Expression>(std::in_place_type<Identifier>, std::move(id.symbol));
         }
         case TokenType::OpenParenthesis:
             return parseGroupedExpression();
@@ -175,7 +183,7 @@ Identifier ExpressionParser::parseIdentifier()
     {
         throw std::runtime_error("Expected identifier");
     }
-    return {m_ctx.eat().value};
+    return Identifier(m_ctx.eat().value);
 }
 
 ExprPtr ExpressionParser::parseNumericLiteral()
@@ -184,7 +192,8 @@ ExprPtr ExpressionParser::parseNumericLiteral()
     {
         throw std::runtime_error("Expected number");
     }
-    return Expression::makeNumericLiteral(std::stod(m_ctx.eat().value));
+    return std::make_unique<Expression>(std::in_place_type<NumericLiteral>,
+                                          std::stod(m_ctx.eat().value));
 }
 
 ExprPtr ExpressionParser::parseGroupedExpression()
