@@ -19,7 +19,6 @@ enum class TokenType
     Let,
     If,
     Else,
-    For,
     While,
     Function,
     Return,

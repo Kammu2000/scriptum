@@ -1,11 +1,11 @@
-#include "scriptum/frontend/parser/ast.hpp"
 #include <format>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
 #include <scriptum/frontend/parser/statement_parser.hpp>
 #include <scriptum/frontend/lexer/token.hpp>
-#include <utility>
+#include "scriptum/frontend/parser/ast.hpp"
 
 namespace scriptum {
 
@@ -27,7 +27,7 @@ StmtPtr StatementParser::parseStatement()
         case TokenType::OpenBraces: {
             BlockStmtPtr block = parseBlockStatement();
             return std::make_unique<Statement>(std::in_place_type<BlockStatement>,
-                                                 std::move(block->body));
+                                               std::move(block->body));
         }
         case TokenType::Return:
             return parseReturnStatement();
@@ -58,7 +58,7 @@ StmtPtr StatementParser::parseVarDeclaration()
     }
 
     return std::make_unique<Statement>(std::in_place_type<VariableDeclaration>,
-                                         std::move(identifier), std::move(init));
+                                       std::move(identifier), std::move(init));
 }
 
 StmtPtr StatementParser::parseIfStatement()
@@ -80,7 +80,7 @@ StmtPtr StatementParser::parseIfStatement()
         {
             BlockStmtPtr block = parseBlockStatement();
             elseBlock = std::make_unique<Statement>(std::in_place_type<BlockStatement>,
-                                                      std::move(block->body));
+                                                    std::move(block->body));
         }
         else
         {
@@ -90,7 +90,7 @@ StmtPtr StatementParser::parseIfStatement()
     }
 
     return std::make_unique<Statement>(std::in_place_type<IfStatement>, std::move(test),
-                                         std::move(thenBlock), std::move(elseBlock));
+                                       std::move(thenBlock), std::move(elseBlock));
 }
 
 BlockStmtPtr StatementParser::parseBlockStatement()
@@ -125,7 +125,7 @@ StmtPtr StatementParser::parseWhileStatement()
     ExprPtr test = m_expressionParser.parseGroupedExpression();
     BlockStmtPtr loopBody = parseBlockStatement();
     return std::make_unique<Statement>(std::in_place_type<WhileStatement>, std::move(test),
-                                         std::move(loopBody));
+                                       std::move(loopBody));
 }
 
 StmtPtr StatementParser::parseReturnStatement()
@@ -138,7 +138,7 @@ StmtPtr StatementParser::parseReturnStatement()
     }
 
     return std::make_unique<Statement>(std::in_place_type<ReturnStatement>,
-                                         m_expressionParser.parseExpression());
+                                       m_expressionParser.parseExpression());
 }
 
 StmtPtr StatementParser::parseFunctionDeclaration()
@@ -194,13 +194,13 @@ StmtPtr StatementParser::parseFunctionDeclaration()
 
     BlockStmtPtr body = parseBlockStatement();
     return std::make_unique<Statement>(std::in_place_type<FunctionDeclaration>, std::move(id),
-                                         std::move(params), std::move(body));
+                                       std::move(params), std::move(body));
 }
 
 StmtPtr StatementParser::parseExpressionStatement()
 {
     return std::make_unique<Statement>(std::in_place_type<ExpressionStatement>,
-                                         m_expressionParser.parseExpression());
+                                       m_expressionParser.parseExpression());
 }
 
 } // namespace scriptum

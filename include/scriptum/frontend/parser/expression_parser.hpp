@@ -11,6 +11,10 @@ class ExpressionParser
     explicit ExpressionParser(ParserContext& ctx);
 
     ExprPtr parseExpression();
+    ExprPtr parseGroupedExpression();
+    Identifier parseIdentifier();
+
+  private:
     ExprPtr parseAssignmentExpression();
     ExprPtr parseLogicalOrExpression();
     ExprPtr parseLogicalAndExpression();
@@ -21,11 +25,8 @@ class ExpressionParser
     ExprPtr parseCallExpression();
     ExprPtr parsePrimaryExpression();
     ExprPtr parseNumericLiteral();
-    ExprPtr parseGroupedExpression();
-    Identifier parseIdentifier();
     std::vector<ExprPtr> parseArguments();
 
-  private:
     ParserContext& m_ctx;
 };
 
