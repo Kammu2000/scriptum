@@ -3,9 +3,9 @@
 #include <stdexcept>
 #include <utility>
 
+#include "scriptum/frontend/parser/ast.hpp"
 #include <scriptum/frontend/parser/statement_parser.hpp>
 #include <scriptum/frontend/lexer/token.hpp>
-#include "scriptum/frontend/parser/ast.hpp"
 
 namespace scriptum {
 

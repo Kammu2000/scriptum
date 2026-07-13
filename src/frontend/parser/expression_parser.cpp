@@ -2,7 +2,6 @@
 #include <unordered_set>
 
 #include <scriptum/frontend/parser/expression_parser.hpp>
-
 #include <scriptum/frontend/lexer/token.hpp>
 
 namespace scriptum {
@@ -28,7 +27,7 @@ ExprPtr ExpressionParser::parseAssignmentExpression()
 {
     auto left = parseLogicalOrExpression();
 
-    if (kAssignmentOperators.count(m_ctx.peek().value) > 0)
+    if (kAssignmentOperators.contains(m_ctx.peek().value))
     {
         const Identifier* const id = std::get_if<Identifier>(&left->node);
         if (id == nullptr)
@@ -79,7 +78,7 @@ ExprPtr ExpressionParser::parseEqualityExpression()
 {
     auto left = parseComparisonExpression();
 
-    while (kEqualityOperators.count(m_ctx.peek().value) > 0)
+    while (kEqualityOperators.contains(m_ctx.peek().value))
     {
         const std::string op = m_ctx.eat().value;
         auto right = parseComparisonExpression();
@@ -94,7 +93,7 @@ ExprPtr ExpressionParser::parseComparisonExpression()
 {
     auto left = parseAdditiveExpression();
 
-    while (kComparisonOperators.count(m_ctx.peek().value) > 0)
+    while (kComparisonOperators.contains(m_ctx.peek().value))
     {
         const std::string op = m_ctx.eat().value;
         auto right = parseAdditiveExpression();
@@ -109,7 +108,7 @@ ExprPtr ExpressionParser::parseAdditiveExpression()
 {
     auto left = parseMultiplicativeExpression();
 
-    while (kAdditiveOperators.count(m_ctx.peek().value) > 0)
+    while (kAdditiveOperators.contains(m_ctx.peek().value))
     {
         const std::string op = m_ctx.eat().value;
         auto right = parseMultiplicativeExpression();
@@ -124,7 +123,7 @@ ExprPtr ExpressionParser::parseMultiplicativeExpression()
 {
     auto left = parseCallExpression();
 
-    while (kMultiplicativeOperators.count(m_ctx.peek().value) > 0)
+    while (kMultiplicativeOperators.contains(m_ctx.peek().value))
     {
         const std::string op = m_ctx.eat().value;
         auto right = parseCallExpression();
