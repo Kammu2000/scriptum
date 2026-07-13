@@ -33,7 +33,7 @@ struct Identifier
 
 struct BinaryExpression
 {
-    BinaryExpression(ExprPtr&& left, ExprPtr&& right, std::string op);
+    explicit BinaryExpression(ExprPtr&& left, ExprPtr&& right, std::string op);
 
     ExprPtr left;
     ExprPtr right;
@@ -42,7 +42,7 @@ struct BinaryExpression
 
 struct AssignmentExpression
 {
-    AssignmentExpression(Identifier left, ExprPtr&& right, std::string op);
+    explicit AssignmentExpression(Identifier left, ExprPtr&& right, std::string op);
 
     Identifier left;
     ExprPtr right;
@@ -51,7 +51,7 @@ struct AssignmentExpression
 
 struct CallExpression
 {
-    CallExpression(ExprPtr&& callee, std::vector<ExprPtr> args);
+    explicit CallExpression(ExprPtr&& callee, std::vector<ExprPtr> args);
 
     ExprPtr callee;
     std::vector<ExprPtr> args;
@@ -78,7 +78,7 @@ struct ExpressionStatement
 
 struct VariableDeclaration
 {
-    VariableDeclaration(Identifier id, std::optional<ExprPtr> init);
+    explicit VariableDeclaration(Identifier id, std::optional<ExprPtr> init);
 
     Identifier id;
     std::optional<ExprPtr> init;
@@ -93,7 +93,7 @@ struct BlockStatement
 
 struct IfStatement
 {
-    IfStatement(ExprPtr&& test, BlockStmtPtr&& thenBlock, StmtPtr&& elseBlock);
+    explicit IfStatement(ExprPtr&& test, BlockStmtPtr&& thenBlock, StmtPtr&& elseBlock);
 
     ExprPtr test;
     BlockStmtPtr thenBlock;
@@ -102,7 +102,7 @@ struct IfStatement
 
 struct WhileStatement
 {
-    WhileStatement(ExprPtr&& test, BlockStmtPtr&& body);
+    explicit WhileStatement(ExprPtr&& test, BlockStmtPtr&& body);
 
     ExprPtr test;
     BlockStmtPtr body;
@@ -117,7 +117,8 @@ struct ReturnStatement
 
 struct FunctionDeclaration
 {
-    FunctionDeclaration(Identifier id, std::vector<Identifier> params, BlockStmtPtr&& body);
+    explicit FunctionDeclaration(Identifier id, std::vector<Identifier> params,
+                                 BlockStmtPtr&& body);
 
     Identifier id;
     std::vector<Identifier> params;

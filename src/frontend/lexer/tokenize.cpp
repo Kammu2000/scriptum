@@ -10,9 +10,9 @@ namespace scriptum {
 namespace {
 
 const std::unordered_map<std::string, TokenType> kReservedWords = {
-    {"let", TokenType::Let},       {"if", TokenType::If},       {"else", TokenType::Else},
-    {"for", TokenType::For},       {"while", TokenType::While}, {"function", TokenType::Function},
-    {"return", TokenType::Return},
+    {"let", TokenType::Let},           {"if", TokenType::If},
+    {"else", TokenType::Else},         {"while", TokenType::While},
+    {"function", TokenType::Function}, {"return", TokenType::Return},
 };
 
 } // namespace
